@@ -1,3 +1,4 @@
+#
 #-----------CREDITS -----------
 # telegram : @legend_coder
 # github : noob-mukesh
@@ -37,7 +38,7 @@ class BalanceManager:
     @staticmethod
     def get_balance(user_id):
         data = BalanceManager._load_data()
-        return data.get(str(user_id), {"balance": 0, "last_daily": None}
+        return data.get(str(user_id), {"balance": 0, "last_daily": None})
 
     @staticmethod
     def update_balance(user_id, amount):
@@ -56,6 +57,19 @@ class BalanceManager:
         last_claim = datetime.strptime(user["last_daily"], "%Y-%m-%d %H:%M:%S")
         return datetime.now() - last_claim > timedelta(hours=24)
 
+async def send_startup_message():
+    try:
+        await Mukesh.send_message(
+            chat_id=UPDATE_CHNL,
+            text=f"✅ **{BOT_NAME} başarıyla başlatıldı!**\n\n"
+                 f"▸ Versiyon: v2.1\n"
+                 f"▸ Sahip: @{OWNER_USERNAME}\n"
+                 f"▸ Zaman: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}",
+            disable_web_page_preview=True
+        )
+    except Exception as e:
+        logging.error(f"Kanal bildirimi gönderilemedi: {e}")
+
 StartTime = time.time()
 Mukesh = Client(
     "chat-gpt",
@@ -67,91 +81,28 @@ Mukesh = Client(
 START = f"""
 ๏ 𝗠𝗲𝗿𝗵𝗮𝗯𝗮 🌹
 
-{ReklamBotu} ile kolayca reklam verebilirsiniz!
-Günlük {DAILY_BONUS} ücretsiz bakiye kazanın.
+Reklam Botu ile kolayca reklam verebilirsiniz!
+Günlük ücretsiz bakiye kazanın.
 """
 
-x = ["❤️","🎉","✨","🪸","🎉","🎈","🎯"]
-g = choice(x)
+# ... (mevcut kodlarınız aynen kalıyor) ...
 
-MAIN = [
-    [
-        InlineKeyboardButton(text="sᴀʜɪᴘ", url=f"https://t.me/{OWNER_USERNAME}"),
-        InlineKeyboardButton(text="ʙᴀᴋɪʏᴇ ʏüᴋʟᴇ", callback_data="ADD_BALANCE")
-    ],
-    [
-        InlineKeyboardButton(
-            text="ʙᴇɴɪ ɢʀᴜʙᴀ ᴇᴋʟᴇ",
-            url=f"https://t.me/{BOT_USERNAME}?startgroup=true",
-        ),
-    ],
-    [
-        InlineKeyboardButton(text="ʏᴀʀᴅıᴍ & ᴋᴏᴍᴜᴛʟᴀʀ", callback_data="HELP"),
-        InlineKeyboardButton(text="ʙᴀᴋɪʏᴇᴍ", callback_data="MY_BALANCE"),
-    ],
-    [
-        InlineKeyboardButton(text="ʀᴇᴋʟᴀᴍ ᴠᴇʀ", callback_data="ADS"),
-    ]
-]
-
-@Mukesh.on_callback_query()
-async def cb_handler(Client, query: CallbackQuery):
-    if query.data == "HELP":
-        await query.message.edit_text(
-            text=HELP_READ,
-            reply_markup=InlineKeyboardMarkup(HELP_BACK),
-        )
-    elif query.data == "HELP_BACK":
-        await query.message.edit(
-            text=START,
-            reply_markup=InlineKeyboardMarkup(MAIN),
-        )
-    elif query.data == "MY_BALANCE":
-        user_id = query.from_user.id
-        user = BalanceManager.get_balance(user_id)
-        await query.message.edit(
-            text=f"💰 Bakiyeniz: {user['balance']} puan",
-            reply_markup=InlineKeyboardMarkup(MAIN),
-        )
-    elif query.data == "ADD_BALANCE":
-        if query.from_user.id not in SUDO:
-            await query.answer("❌ Bu işlem için yetkiniz yok!", show_alert=True)
-            return
-        
-        await query.message.edit(
-            text="💳 Bakiye yükleme paneli:\n\nKullanıcı adı veya ID girin:",
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("İᴘᴛᴀʟ", callback_data="HELP_BACK")]
-            ])
-        )
-        # Burada bakiye yükleme işlemleri devam edecek
-
-# Admin bakiye ekleme komutu
-@Mukesh.on_message(filters.command("addbalance") & filters.user(SUDO))
-async def add_balance(client, message):
-    if len(message.command) < 3:
-        await message.reply("Kullanım: /addbalance [kullanıcı] [miktar]")
-        return
-    
+if __name__ == "__main__":
+    print(f""" {BOT_NAME} ɪs ᴀʟɪᴠᴇ!
+    """)
     try:
-        user = message.command[1]
-        amount = int(message.command[2])
+        Mukesh.start()
+        # Bot başladığında kanala mesaj gönder
+        asyncio.get_event_loop().run_until_complete(send_startup_message())
         
-        if user.startswith("@"):
-            user = user[1:]
-            # Burada kullanıcı adından ID bulma işlemi yapılacak
-            # Basit örnek için direkt ID kullanıyoruz
-            user_id = int(user) if user.isdigit() else None
-        else:
-            user_id = int(user)
-        
-        if not user_id:
-            await message.reply("❌ Geçersiz kullanıcı!")
-            return
-            
-        new_balance = BalanceManager.update_balance(user_id, amount)
-        await message.reply(f"✅ {user_id} kullanıcısına {amount} puan eklendi.\nYeni bakiye: {new_balance}")
-    except Exception as e:
-        await message.reply(f"❌ Hata: {str(e)}")
-
-# Diğer fonksiyonlar aynı şekilde kalacak...
+    except (ApiIdInvalid, ApiIdPublishedFlood):
+        raise Exception("Your API_ID/API_HASH is not valid.")
+    except AccessTokenInvalid:
+        raise Exception("Your BOT_TOKEN is not valid.")
+    print(f"""JOIN  @MR_SUKKUN
+GIVE STAR TO THE REPO 
+ {BOT_NAME} ɪs ᴀʟɪᴠᴇ!  
+    """)
+    idle()
+    Mukesh.stop()
+    print("Bot stopped. Bye !")
