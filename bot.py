@@ -12,7 +12,7 @@ from config import *
 import requests
 import yt_dlp
 from pyrogram import filters
-from youtube_search import YoutubeSearch
+
 import os,sys,re,requests
 import asyncio,time
 from random import choice
