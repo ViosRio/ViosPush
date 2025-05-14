@@ -2,7 +2,6 @@ import json
 import os
 from datetime import datetime, timedelta
 
-# Bakiyeleri saklamak için basit JSON dosyası
 BALANCE_FILE = "balances.json"
 
 class BalanceManager:
@@ -21,22 +20,22 @@ class BalanceManager:
     @staticmethod
     def get_balance(user_id):
         data = BalanceManager._load_data()
-        return data.get(str(user_id), {"balance": 0, "last_daily": None, "ads_today": 0, "last_ad_date": None})
+        return data.get(str(user_id), {"balance": 0, "last_daily": None})  # Burada parantez kapatıldı
 
     @staticmethod
     def update_balance(user_id, update_data):
         data = BalanceManager._load_data()
-        user_data = data.get(str(user_id), {"balance": 0, "last_daily": None, "ads_today": 0, "last_ad_date": None})
+        user_data = data.get(str(user_id), {"balance": 0, "last_daily": None})
         user_data.update(update_data)
         data[str(user_id)] = user_data
         BalanceManager._save_data(data)
+        return user_data["balance"]
 
     @staticmethod
     def can_claim_daily(user_id):
         user = BalanceManager.get_balance(user_id)
         if not user["last_daily"]:
             return True
-        
         last_claim = datetime.strptime(user["last_daily"], "%Y-%m-%d %H:%M:%S")
         return datetime.now() - last_claim > timedelta(hours=24)
 
@@ -53,4 +52,4 @@ class BalanceManager:
             BalanceManager.update_balance(user_id, {"ads_today": 0, "last_ad_date": datetime.now().strftime("%Y-%m-%d %H:%M:%S")})
             return True
         
-        return user["ads_today"] < 3  # Günlük maks 3 reklam
+        return user["ads_today"] < 3
