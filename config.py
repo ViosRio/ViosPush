@@ -16,15 +16,20 @@ SUDO = list(map(int, os.environ.get("SUDO", "5910057231").split()))
 BANNED_USERS = os.environ.get("BANNED_USERS", None)
 
 # Kanal ve Grup Bilgileri
-UPDATE_CHNL = os.environ.get("UPDATE_CHNL", "ReklamAdssdemo")  # Reklamların gideceği kanal
+UPDATE_CHNL = os.environ.get("UPDATE_CHNL", "ReklamAdssdemo")
 OWNER_USERNAME = os.environ.get("OWNER_USERNAME", "MuratVio")
 SUPPORT_GRP = os.environ.get("SUPPORT_GRP", "Bot4Chan")
 
-# Reklam Ayarları
+# Bakiye ve Reklam Sistemi
+DAILY_BONUS = 20  # Günlük bakiye bonusu
+AD_COST = 30  # Reklam verme maliyeti
+MAX_ADS_PER_DAY = 3  # Kullanıcı başına günlük maks reklam
+
+# Reklam Paketleri
 AD_PRICES = {
-    "standard": 50,  # Standart reklam ücreti (örneğin 50 TL)
-    "premium": 100,  # Premium reklam ücreti
-    "sponsored": 200  # Sponsorlu içerik ücreti
+    "standard": 50,
+    "premium": 100,
+    "sponsored": 200
 }
 
 AD_DURATIONS = {
@@ -38,14 +43,14 @@ PAYMENT_INFO = """
 💳 Ödeme Yöntemleri:
 - Banka Havalesi: TRXX XXXX XXXX XXXX
 - Kripto: USDT (TRC20)
-- Diğer: Kanaldan iletişime geçin
 """
 
 # Reklam Kuralları
-AD_RULES = """
-📢 Reklam Kuralları:
-1. Yasa dışı içerik yasaktır
-2. Spam yapılamaz
-3. Reklam onayı 1 saat içinde verilir
+AD_RULES = f"""
+📢 REKLAM KURALLARI:
+
+1. Günlük {DAILY_BONUS} ücretsiz bakiye
+2. Reklam başına {AD_COST} bakiye gerekiyor
+3. Günde max {MAX_ADS_PER_DAY} reklam
 4. Ödeme sonrası iade yoktur
 """
