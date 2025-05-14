@@ -11,19 +11,13 @@ BOT_NAME = os.environ.get("BOT_NAME", "ᴛʜᴇɴᴀ ᴀɪ")
 START_IMG = os.environ.get("START_IMG", "https://telegra.ph/file/4746e2442a584f37dcc86.jpg")
 STKR = os.environ.get("STKR", "CAACAgEAAx0CRjAUHgABAsULZASkFZUsTQTw2k-FvC2SBJnd-vAAAokCAALW9iBFzemsQBDIqWkuBA")
 
-# Yönetici ve Kısıtlamalar
-SUDO = list(map(int, os.environ.get("SUDO", "5910057231").split()))
-BANNED_USERS = os.environ.get("BANNED_USERS", None)
+# Bakiye Sistemi
+DAILY_BONUS = 20  # Günlük bakiye
+AD_COST = 30  # Reklam maliyeti
+MAX_ADS_PER_DAY = 3  # Günlük reklam limiti
 
-# Kanal ve Grup Bilgileri
+# Kanal Bilgileri
 UPDATE_CHNL = os.environ.get("UPDATE_CHNL", "ReklamAdssdemo")
-OWNER_USERNAME = os.environ.get("OWNER_USERNAME", "MuratVio")
-SUPPORT_GRP = os.environ.get("SUPPORT_GRP", "Bot4Chan")
-
-# Bakiye ve Reklam Sistemi
-DAILY_BONUS = 20  # Günlük bakiye bonusu
-AD_COST = 30  # Reklam verme maliyeti
-MAX_ADS_PER_DAY = 3  # Kullanıcı başına günlük maks reklam
 
 # Reklam Paketleri
 AD_PRICES = {
