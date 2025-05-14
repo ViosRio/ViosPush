@@ -10,7 +10,6 @@ from pyrogram.enums import ChatAction, ParseMode
 from pyrogram.types import CallbackQuery
 from config import *
 import requests
-import yt_dlp
 from pyrogram import filters
 
 import os,sys,re,requests
