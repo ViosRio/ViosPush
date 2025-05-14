@@ -8,6 +8,8 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN")  # Burayı güncelleyi
 # Yetkililer
 SUDO_USERS = list(map(int, os.environ.get("SUDO", "8141229305").split()))
 BANNED_USERS = list(map(int, os.environ.get("BANNED_USERS", "").split())) if os.environ.get("BANNED_USERS") else []
+DAILY_BONUS = 20  # Günlük ücretsiz bakiye
+SUDO = [8141229305]  # Admin ID listesi
 
 # Bot Bilgileri
 BOT_USERNAME = os.environ.get("BOT_USERNAME", "LunaGramBot")
