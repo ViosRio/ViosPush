@@ -6,7 +6,7 @@ API_HASH = os.environ.get("API_HASH", "cedfb5fb4ffee7ecc746b28afc7925e3")
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "YOUR_BOT_TOKEN")  # Burayı güncelleyin
 
 # Yetkililer
-SUDO_USERS = list(map(int, os.environ.get("SUDO", "5910057231").split()))
+SUDO_USERS = list(map(int, os.environ.get("SUDO", "8141229305").split()))
 BANNED_USERS = list(map(int, os.environ.get("BANNED_USERS", "").split())) if os.environ.get("BANNED_USERS") else []
 
 # Bot Bilgileri
