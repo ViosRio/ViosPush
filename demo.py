@@ -65,19 +65,19 @@ app = Client(
 START_MESSAGE = f"""
 ✨ **Merhaba! Ben {BOT_NAME}** ✨
 
-🚀 Reklam botu olarak hizmetinizdeyim!
+🚀 Reklam Botu Olarak Hizmetinizdeyim!
 
 💎 **Özelliklerim:**
-• Günlük {DAILY_BONUS}₺ ücretsiz bakiye
-• Kolay reklam yönetimi
-• Admin kontrol paneli
+• GÜNLÜK {DAILY_BONUS}₺ ÜCRETSİZ
+• KOLAY ARAYÜZ
+• ADMİN MENÜ
 
 📌 Komutlar için /help yazın
 """
 
 START_BUTTONS = InlineKeyboardMarkup([
     [InlineKeyboardButton("💎 BAKİYEM", callback_data="my_balance"),
-     InlineKeyboardButton("🚀 REKLAM VER", callback_data="post_ad")],
+     InlineKeyboardButton("🚀 REKLAM VER", callback_data="reklam_ver")],
     [InlineKeyboardButton("📚 YARDIM", callback_data="help_menu"),
      InlineKeyboardButton("👑 SAHİP", url=f"t.me/{OWNER_USERNAME}")]
 ])
@@ -86,16 +86,16 @@ START_BUTTONS = InlineKeyboardMarkup([
 HELP_MESSAGE = f"""
 📚 **YARDIM MENÜSÜ** 📚
 
-🔹 **Temel Komutlar:**
+🔹 **TEMEL:**
 /start - Botu başlat
 /help - Yardım menüsü
 /bakiyem - Bakiye kontrol
 
-💰 **Bakiye Sistemi:**
+💰 **BAKİYE:**
 /gunluk - Günlük {DAILY_BONUS}₺ al
 /reklam - Reklam ver ({AD_COST}₺)
 
-👑 **Admin Komutları:**
+👑 **ADMİN:**
 /addbalance [@kullanıcı] [miktar] - Bakiye ekle
 /broadcast [mesaj] - Toplu duyuru
 
@@ -128,7 +128,7 @@ async def help_command(client, message):
 @app.on_message(filters.command("bakiyem"))
 async def balance_command(client, message):
     balance = BalanceManager.get_balance(message.from_user.id)["balance"]
-    await message.reply(f"💰 Bakiyeniz: {balance}₺")
+    await message.reply(f"💰 BAKİYE: {balance}₺")
 
 @app.on_message(filters.command("reklam"))
 async def reklam_ver(client, message):
@@ -144,7 +144,7 @@ Bakiyeniz: {user_data['balance']}{CURRENCY}
 
     # Reklam metni kontrol
     if len(message.text.split()) < 2:
-        return await message.reply("✅ KULLANIM :\n\n /reklam [ BENİMLE EVLENİRMİSİN 🔮 ]")
+        return await message.reply("✅ KULLANIM :\n\n /reklam [ CEREN BENİMLE EVLENİRMİSİN 🔮 ]")
 
     # Reklamı gönder
     try:
