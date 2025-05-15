@@ -56,8 +56,8 @@ UPDATE_CHNL = "ReklamKanalı"  # Reklamların gönderileceği kanal</code></pre>
     <td>Bakiyeni kontrol et</td>
   </tr>
   <tr>
-    <td><code>/gunluk</code></td>
-    <td>Günlük bonus al</td>
+    <td><code>/addbalance</code></td>
+    <td>ADMİN OLARAK BAKİYE EKLE</td>
   </tr>
   <tr>
     <td><code>/pazarlik</code></td>
@@ -87,8 +87,8 @@ UPDATE_CHNL = "ReklamKanalı"  # Reklamların gönderileceği kanal</code></pre>
 <h2>🔗 <strong>Linkler</strong></h2>
 <ul>
   <li>📌 <strong>GitHub:</strong> <a href="https://github.com/ViosRio/ViosPush">ViosPush</a></li>
-  <li>👑 <strong>Sahip:</strong> <a href="https://t.me/OWNER_USERNAME">@KullaniciAdi</a></li>
-  <li>📢 <strong>Reklam Kanalı:</strong> <a href="https://t.me/{UPDATE_CHNL}">@ReklamKanalı</a></li>
+  <li>👑 <strong>Sahip:</strong> <a href="https://t.me/ViosTeam">@KANAL</a></li>
+  <li>📢 <strong>Reklam Kanalı:</strong> <a href="https://t.me/ViosCeo">@ADMİN</a></li>
 </ul>
 
 ---
