@@ -5,12 +5,14 @@
 
 import os
 import json
-from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
+from datetime import datetime
+from pyrogram import Client, filters, enums
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 from config import *
+import asyncio
 import logging
 
-# Logging setup
+# Logging Setup
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -39,58 +41,94 @@ class BalanceManager:
 
     @classmethod
     def get_balance(cls, user_id):
-        return cls._balances.setdefault(str(user_id), {
-            "balance": 0,
-            "last_daily": None,
-            "ads_today": 0
-        })
+        return cls._balances.get(str(user_id), {"balance": 0, "last_daily": None, "ads_today": 0})
 
+    @classmethod
+    def update_balance(cls, user_id, amount):
+        user_data = cls._balances.setdefault(str(user_id), {"balance": 0, "last_daily": None, "ads_today": 0})
+        user_data["balance"] = max(0, user_data["balance"] + amount)
+        cls.save_balances()
+        return user_data["balance"]
+
+# Initialize Balance Manager
 BalanceManager.load_balances()
 
 app = Client(
     "reklam_bot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN
+    bot_token=BOT_TOKEN,
+    plugins=dict(root="plugins")
 )
 
-# ==================== MESSAGES ====================
-START_MSG = f"""
+# ==================== START MESSAGE ====================
+START_MESSAGE = f"""
 ✨ **Merhaba! Ben {BOT_NAME}** ✨
 
+🚀 Reklam botu olarak hizmetinizdeyim!
+
 💎 **Özelliklerim:**
-• Günlük {DAILY_BONUS}{CURRENCY} ücretsiz bakiye
-• Reklam başına {AD_COST}{CURRENCY}
-• Günde max {MAX_ADS_PER_DAY} reklam
+• Günlük {DAILY_BONUS}₺ ücretsiz bakiye
+• Kolay reklam yönetimi
+• Admin kontrol paneli
 
 📌 Komutlar için /help yazın
 """
 
-HELP_MSG = f"""
+START_BUTTONS = InlineKeyboardMarkup([
+    [InlineKeyboardButton("💎 BAKİYEM", callback_data="my_balance"),
+     InlineKeyboardButton("🚀 REKLAM VER", callback_data="post_ad")],
+    [InlineKeyboardButton("📚 YARDIM", callback_data="help_menu"),
+     InlineKeyboardButton("👑 SAHİP", url=f"t.me/{OWNER_USERNAME}")]
+])
+
+# ==================== HELP MESSAGE ====================
+HELP_MESSAGE = f"""
 📚 **YARDIM MENÜSÜ** 📚
 
-/reklam [metin] - Reklam ver ({AD_COST}{CURRENCY})
-/gunluk - Günlük {DAILY_BONUS}{CURRENCY} al
-/bakiyem - Bakiyeni kontrol et
+🔹 **Temel Komutlar:**
+/start - Botu başlat
+/help - Yardım menüsü
+/bakiyem - Bakiye kontrol
+
+💰 **Bakiye Sistemi:**
+/gunluk - Günlük {DAILY_BONUS}₺ al
+/reklam - Reklam ver ({AD_COST}₺)
 
 👑 **Admin Komutları:**
-/addbalance @kullanıcı miktar
-/broadcast mesaj
+/addbalance [@kullanıcı] [miktar] - Bakiye ekle
+/broadcast [mesaj] - Toplu duyuru
 
-🔗 Reklam Kanalı: @{UPDATE_CHNL}
+📢 Reklamlarınız: @{UPDATE_CHNL}
 """
 
-# ==================== COMMANDS ====================
+HELP_BUTTONS = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🔙 ANA MENÜ", callback_data="main_menu")]
+])
+
+# ==================== COMMAND HANDLERS ====================
 @app.on_message(filters.command("start"))
-async def start(client, message):
-    await message.reply_photo(
-        photo=START_IMG,
-        caption=START_MSG,
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🚀 REKLAM VER", callback_data="reklam")],
-            [InlineKeyboardButton("💎 BAKİYEM", callback_data="bakiyem")]
-        ])
+async def start_command(client, message):
+    try:
+        await message.reply_photo(
+            photo=START_IMG,
+            caption=START_MESSAGE,
+            reply_markup=START_BUTTONS
+        )
+    except Exception as e:
+        logger.error(f"Start error: {e}")
+
+@app.on_message(filters.command("help"))
+async def help_command(client, message):
+    await message.reply_text(
+        HELP_MESSAGE,
+        reply_markup=HELP_BUTTONS
     )
+
+@app.on_message(filters.command("bakiyem"))
+async def balance_command(client, message):
+    balance = BalanceManager.get_balance(message.from_user.id)["balance"]
+    await message.reply(f"💰 Bakiyeniz: {balance}₺")
 
 @app.on_message(filters.command("reklam"))
 async def reklam_ver(client, message):
@@ -106,7 +144,7 @@ Bakiyeniz: {user_data['balance']}{CURRENCY}
 
     # Reklam metni kontrol
     if len(message.text.split()) < 2:
-        return await message.reply("Örnek: /reklam Ürünümüz çok kaliteli...")
+        return await message.reply("✅ KULLANIM :\n\n /reklam [ BENİMLE EVLENİRMİSİN 🔮 ]")
 
     # Reklamı gönder
     try:
@@ -115,9 +153,7 @@ Bakiyeniz: {user_data['balance']}{CURRENCY}
             text=f"📢 **REKLAM**\n\n{message.text.split(maxsplit=1)[1]}\n\n👤 @{message.from_user.username}"
         )
         # Bakiyeyi güncelle
-        user_data["balance"] -= AD_COST
-        user_data["ads_today"] += 1
-        BalanceManager.save_balances()
+        BalanceManager.update_balance(message.from_user.id, -AD_COST)
         
         await message.reply(f"""
 ✅ Reklam gönderildi!
@@ -127,31 +163,57 @@ Bakiyeniz: {user_data['balance']}{CURRENCY}
     except Exception as e:
         await message.reply(f"❌ Hata: {str(e)}")
 
+# ==================== CALLBACK HANDLERS ====================
+@app.on_callback_query(filters.regex("^main_menu$"))
+async def main_menu_callback(client, query):
+    await query.message.edit_text(
+        START_MESSAGE,
+        reply_markup=START_BUTTONS
+    )
+
+@app.on_callback_query(filters.regex("^help_menu$"))
+async def help_menu_callback(client, query):
+    await query.message.edit_text(
+        HELP_MESSAGE,
+        reply_markup=HELP_BUTTONS
+    )
+
+@app.on_callback_query(filters.regex("^my_balance$"))
+async def balance_callback(client, query):
+    balance = BalanceManager.get_balance(query.from_user.id)["balance"]
+    await query.message.edit_text(
+        f"💰 **Bakiyeniz:** {balance}₺",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔙 Geri", callback_data="main_menu")]
+        ])
+    )
+
+# ==================== ADMIN COMMANDS ====================
 @app.on_message(filters.command("addbalance") & filters.user(SUDO))
-async def add_balance(client, message):
+async def add_balance_command(client, message):
     try:
         if len(message.command) < 3:
             return await message.reply("Kullanım: /addbalance @kullanıcı miktar")
-        
-        # Kullanıcıyı bul
-        user = await client.get_users(message.command[1])
-        amount = int(message.command[2])
-        
-        # Bakiye güncelle
-        user_data = BalanceManager.get_balance(user.id)
-        user_data["balance"] += amount
-        BalanceManager.save_balances()
-        
-        await message.reply(f"""
-✅ Bakiye yüklendi!
-👤 Kullanıcı: @{user.username}
-💰 Miktar: {amount}{CURRENCY}
-💳 Yeni bakiye: {user_data['balance']}{CURRENCY}
-""")
-    except Exception as e:
-        await message.reply(f"❌ Hata: {str(e)}")
 
+        username = message.command[1].lstrip("@")
+        amount = int(message.command[2])
+
+        try:
+            user = await client.get_users(username)
+            new_balance = BalanceManager.update_balance(user.id, amount)
+            await message.reply(f"""
+✅ Bakiye Yüklendi!
+👤 Kullanıcı: @{user.username}
+💰 Miktar: {amount}₺
+💳 Yeni Bakiye: {new_balance}₺
+""")
+        except Exception as e:
+            await message.reply(f"❌ Kullanıcı bulunamadı: {e}")
+    except Exception as e:
+        await message.reply(f"❌ Hata: {e}")
+
+# ==================== MAIN ====================
 if __name__ == "__main__":
-    logger.info("Bot başlatılıyor...")
+    logger.info("Starting bot...")
     app.run()
-    logger.info("Bot durduruldu")
+    logger.info("Bot stopped")
