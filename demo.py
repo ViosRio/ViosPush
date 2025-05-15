@@ -67,17 +67,15 @@ START_MESSAGE = f"""
 
 🚀 Reklam Botu Olarak Hizmetinizdeyim!
 
-💎 **Özelliklerim:**
+💎 **ÖZELLİKLERİM:**
 • GÜNLÜK {DAILY_BONUS}₺ ÜCRETSİZ
 • KOLAY ARAYÜZ
 • ADMİN MENÜ
-
-📌 Komutlar için /help yazın
 """
 
 START_BUTTONS = InlineKeyboardMarkup([
     [InlineKeyboardButton("💎 BAKİYEM", callback_data="my_balance"),
-     InlineKeyboardButton("🚀 REKLAM VER", callback_data="reklam_ver")],
+     InlineKeyboardButton("🚀 REKLAM KANAL", url=f"t.me/{UPDATE_CHNL}")],
     [InlineKeyboardButton("📚 YARDIM", callback_data="help_menu"),
      InlineKeyboardButton("👑 SAHİP", url=f"t.me/{OWNER_USERNAME}")]
 ])
@@ -87,19 +85,20 @@ HELP_MESSAGE = f"""
 📚 **YARDIM MENÜSÜ** 📚
 
 🔹 **TEMEL:**
-/start - Botu başlat
-/help - Yardım menüsü
-/bakiyem - Bakiye kontrol
 
-💰 **BAKİYE:**
-/gunluk - Günlük {DAILY_BONUS}₺ al
-/reklam - Reklam ver ({AD_COST}₺)
+• /start = Botu Başlat
+• /help = Yardım Menüsü
+• /bakiyem = Bakiye Kontrol
+
+📗 **BAKİYE:**
+
+• /reklam = Reklam Ver ({AD_COST}₺)
 
 👑 **ADMİN:**
-/addbalance [@kullanıcı] [miktar] - Bakiye ekle
-/broadcast [mesaj] - Toplu duyuru
 
-📢 Reklamlarınız: @{UPDATE_CHNL}
+• /addbalance [@kullanıcı] [miktar] - Bakiye ekle
+
+📢 Reklamlarınız: @{UPDATE_CHNL} 
 """
 
 HELP_BUTTONS = InlineKeyboardMarkup([
@@ -128,7 +127,7 @@ async def help_command(client, message):
 @app.on_message(filters.command("bakiyem"))
 async def balance_command(client, message):
     balance = BalanceManager.get_balance(message.from_user.id)["balance"]
-    await message.reply(f"💰 BAKİYE: {balance}₺")
+    await message.reply(f"📗 BAKİYE: {balance}₺")
 
 @app.on_message(filters.command("reklam"))
 async def reklam_ver(client, message):
@@ -158,7 +157,7 @@ Bakiyeniz: {user_data['balance']}{CURRENCY}
         await message.reply(f"""
 ✅ Reklam gönderildi!
 📌 Kanal: @{UPDATE_CHNL}
-💰 Harcanan: {AD_COST}{CURRENCY}
+📗 Harcanan: {AD_COST}{CURRENCY}
 """)
     except Exception as e:
         await message.reply(f"❌ Hata: {str(e)}")
@@ -182,7 +181,7 @@ async def help_menu_callback(client, query):
 async def balance_callback(client, query):
     balance = BalanceManager.get_balance(query.from_user.id)["balance"]
     await query.message.edit_text(
-        f"💰 **Bakiyeniz:** {balance}₺",
+        f"📗 **BAKİYE:** {balance}₺\n\nNOT : BAKİYE YÜKLEMEK İÇİN KURUCU İÇİN İLETİŞİME GEÇİN",
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 Geri", callback_data="main_menu")]
         ])
