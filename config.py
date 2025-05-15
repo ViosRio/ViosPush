@@ -27,7 +27,7 @@ LOG_CHANNEL = os.environ.get("LOG_CHANNEL", "")
 
 # Bakiye Sistemi
 DAILY_BONUS = 20
-AD_COST = 30
+AD_COST = 10
 MAX_ADS_PER_DAY = 3
 CURRENCY = "₺"
 
