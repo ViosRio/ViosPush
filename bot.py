@@ -65,10 +65,10 @@ app = Client(
 START_MESSAGE = f"""
 ✨ **Merhaba! Ben {BOT_NAME}** ✨
 
-🚀 Reklam Botu Olarak Hizmetinizdeyim!
+ REKLAM VE ÜRÜNLERİNİZİ TANITMAK İÇİN DOĞRU YERDESİN HACI ABİ
 
 💎 **ÖZELLİKLERİM:**
-• GÜNLÜK {DAILY_BONUS}₺ ÜCRETSİZ
+
 • KOLAY ARAYÜZ
 • ADMİN MENÜ
 """
