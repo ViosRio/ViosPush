@@ -1,108 +1,186 @@
-#
 #-----------CREDITS -----------
 # telegram : @legend_coder
 # github : noob-mukesh
+# powered by DeepSeek Chat ❤️🔥
+
 import os
 import json
-from datetime import datetime, timedelta
-from pyrogram import Client, filters, enums, idle
-from pyrogram.errors import ApiIdInvalid, ApiIdPublishedFlood, AccessTokenInvalid
+from datetime import datetime
+from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, CallbackQuery
 from config import *
 import asyncio
-import time
-from random import choice
 import logging
 
-FORMAT = "[LEGEND-MUKESH] %(message)s"
+# Logging Setup
 logging.basicConfig(
-    level=logging.WARNING, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
-
-# Bakiye Sistemi
-BALANCE_FILE = "balances.json"
+logger = logging.getLogger(__name__)
 
 class BalanceManager:
-    @staticmethod
-    def _load_data():
-        if not os.path.exists(BALANCE_FILE):
-            return {}
-        with open(BALANCE_FILE, "r") as f:
-            return json.load(f)
+    _balances = {}
 
-    @staticmethod
-    def _save_data(data):
-        with open(BALANCE_FILE, "w") as f:
-            json.dump(data, f)
+    @classmethod
+    def load_balances(cls):
+        try:
+            if os.path.exists("balances.json"):
+                with open("balances.json", "r") as f:
+                    cls._balances = json.load(f)
+        except Exception as e:
+            logger.error(f"Balance load error: {e}")
 
-    @staticmethod
-    def get_balance(user_id):
-        data = BalanceManager._load_data()
-        return data.get(str(user_id), {"balance": 0, "last_daily": None})
+    @classmethod
+    def save_balances(cls):
+        try:
+            with open("balances.json", "w") as f:
+                json.dump(cls._balances, f, indent=4)
+        except Exception as e:
+            logger.error(f"Balance save error: {e}")
 
-    @staticmethod
-    def update_balance(user_id, amount):
-        data = BalanceManager._load_data()
-        user_data = data.get(str(user_id), {"balance": 0, "last_daily": None})
+    @classmethod
+    def get_balance(cls, user_id):
+        return cls._balances.get(str(user_id), {"balance": 0, "last_daily": None})
+
+    @classmethod
+    def update_balance(cls, user_id, amount):
+        user_data = cls._balances.setdefault(str(user_id), {"balance": 0, "last_daily": None})
         user_data["balance"] = max(0, user_data["balance"] + amount)
-        data[str(user_id)] = user_data
-        BalanceManager._save_data(data)
+        cls.save_balances()
         return user_data["balance"]
 
-    @staticmethod
-    def can_claim_daily(user_id):
-        user = BalanceManager.get_balance(user_id)
-        if not user["last_daily"]:
-            return True
-        last_claim = datetime.strptime(user["last_daily"], "%Y-%m-%d %H:%M:%S")
-        return datetime.now() - last_claim > timedelta(hours=24)
+# Initialize Balance Manager
+BalanceManager.load_balances()
 
-async def send_startup_message():
-    try:
-        await Mukesh.send_message(
-            chat_id=UPDATE_CHNL,
-            text=f"✅ **{BOT_NAME} başarıyla başlatıldı!**\n\n"
-                 f"▸ Versiyon: v2.1\n"
-                 f"▸ Sahip: @{OWNER_USERNAME}\n"
-                 f"▸ Zaman: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}",
-            disable_web_page_preview=True
-        )
-    except Exception as e:
-        logging.error(f"Kanal bildirimi gönderilemedi: {e}")
-
-StartTime = time.time()
-Mukesh = Client(
-    "chat-gpt",
+app = Client(
+    "reklam_bot",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN
+    bot_token=BOT_TOKEN,
+    plugins=dict(root="plugins")
 )
 
-START = f"""
-๏ 𝗠𝗲𝗿𝗵𝗮𝗯𝗮 🌹
+# ==================== START MESSAGE ====================
+START_MESSAGE = f"""
+✨ **Merhaba! Ben {BOT_NAME}** ✨
 
-Reklam Botu ile kolayca reklam verebilirsiniz!
-Günlük ücretsiz bakiye kazanın.
+🚀 Reklam botu olarak hizmetinizdeyim!
+
+💎 **Özelliklerim:**
+• Günlük {DAILY_BONUS}₺ ücretsiz bakiye
+• Kolay reklam yönetimi
+• Admin kontrol paneli
+
+📌 Komutlar için /help yazın
 """
 
-# ... (mevcut kodlarınız aynen kalıyor) ...
+START_BUTTONS = InlineKeyboardMarkup([
+    [InlineKeyboardButton("💎 BAKİYEM", callback_data="my_balance"),
+     InlineKeyboardButton("🚀 REKLAM VER", callback_data="post_ad")],
+    [InlineKeyboardButton("📚 YARDIM", callback_data="help_menu"),
+     InlineKeyboardButton("👑 SAHİP", url=f"t.me/{OWNER_USERNAME}")]
+])
 
-if __name__ == "__main__":
-    print(f""" {BOT_NAME} ɪs ᴀʟɪᴠᴇ!
-    """)
+# ==================== HELP MESSAGE ====================
+HELP_MESSAGE = f"""
+📚 **YARDIM MENÜSÜ** 📚
+
+🔹 **Temel Komutlar:**
+/start - Botu başlat
+/help - Yardım menüsü
+/bakiyem - Bakiye kontrol
+
+💰 **Bakiye Sistemi:**
+/gunluk - Günlük {DAILY_BONUS}₺ al
+/reklam - Reklam ver ({AD_COST}₺)
+
+👑 **Admin Komutları:**
+/addbalance [@kullanıcı] [miktar] - Bakiye ekle
+/broadcast [mesaj] - Toplu duyuru
+
+📢 Reklamlarınız: @{UPDATE_CHNL}
+"""
+
+HELP_BUTTONS = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🔙 ANA MENÜ", callback_data="main_menu")]
+])
+
+# ==================== COMMAND HANDLERS ====================
+@app.on_message(filters.command("start"))
+async def start_command(client, message):
     try:
-        Mukesh.start()
-        # Bot başladığında kanala mesaj gönder
-        asyncio.get_event_loop().run_until_complete(send_startup_message())
-        
-    except (ApiIdInvalid, ApiIdPublishedFlood):
-        raise Exception("Your API_ID/API_HASH is not valid.")
-    except AccessTokenInvalid:
-        raise Exception("Your BOT_TOKEN is not valid.")
-    print(f"""JOIN  @MR_SUKKUN
-GIVE STAR TO THE REPO 
- {BOT_NAME} ɪs ᴀʟɪᴠᴇ!  
-    """)
-    idle()
-    Mukesh.stop()
-    print("Bot stopped. Bye !")
+        await message.reply_photo(
+            photo=START_IMG,
+            caption=START_MESSAGE,
+            reply_markup=START_BUTTONS
+        )
+    except Exception as e:
+        logger.error(f"Start error: {e}")
+
+@app.on_message(filters.command("help"))
+async def help_command(client, message):
+    await message.reply_text(
+        HELP_MESSAGE,
+        reply_markup=HELP_BUTTONS
+    )
+
+@app.on_message(filters.command("bakiyem"))
+async def balance_command(client, message):
+    balance = BalanceManager.get_balance(message.from_user.id)["balance"]
+    await message.reply(f"💰 Bakiyeniz: {balance}₺")
+
+# ==================== CALLBACK HANDLERS ====================
+@app.on_callback_query(filters.regex("^main_menu$"))
+async def main_menu_callback(client, query):
+    await query.message.edit_text(
+        START_MESSAGE,
+        reply_markup=START_BUTTONS
+    )
+
+@app.on_callback_query(filters.regex("^help_menu$"))
+async def help_menu_callback(client, query):
+    await query.message.edit_text(
+        HELP_MESSAGE,
+        reply_markup=HELP_BUTTONS
+    )
+
+@app.on_callback_query(filters.regex("^my_balance$"))
+async def balance_callback(client, query):
+    balance = BalanceManager.get_balance(query.from_user.id)["balance"]
+    await query.message.edit_text(
+        f"💰 **Bakiyeniz:** {balance}₺",
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔙 Geri", callback_data="main_menu")]
+        ])
+    )
+
+# ==================== ADMIN COMMANDS ====================
+@app.on_message(filters.command("addbalance") & filters.user(SUDO))
+async def add_balance_command(client, message):
+    try:
+        if len(message.command) < 3:
+            return await message.reply("Kullanım: /addbalance @kullanıcı miktar")
+
+        username = message.command[1].lstrip("@")
+        amount = int(message.command[2])
+
+        try:
+            user = await client.get_users(username)
+            new_balance = BalanceManager.update_balance(user.id, amount)
+            await message.reply(f"""
+✅ Bakiye Yüklendi!
+👤 Kullanıcı: @{user.username}
+💰 Miktar: {amount}₺
+💳 Yeni Bakiye: {new_balance}₺
+""")
+        except Exception as e:
+            await message.reply(f"❌ Kullanıcı bulunamadı: {e}")
+    except Exception as e:
+        await message.reply(f"❌ Hata: {e}")
+
+# ==================== MAIN ====================
+if __name__ == "__main__":
+    logger.info("Starting bot...")
+    app.run()
+    logger.info("Bot stopped")
